@@ -1,0 +1,77 @@
+$username = "aguirre.juan"
+$password = ConvertTo-SecureString "" -AsPlainText -Force
+$cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $username, $password
+
+# Verificar si la ruta existe
+
+#Final: Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+# Establecer la polÃ­tica de ejecuciÃ³n
+#Set-ExecutionPolicy Unrestricted -Scope Process -Force
+# Guardar la polÃ­tica de ejecuciÃ³n actual
+$currentExecutionPolicy = Get-ExecutionPolicy
+# Definir las aplicaciones disponibles en el menÃº
+$appsMenu = @{
+    "Firefox Installer" = "\\192.168.3.129\PruebasDe\Firefox.exe"
+        # Agrega mÃ¡s aplicaciones segÃºn sea necesario
+}
+# Crear formulario
+$form = New-Object System.Windows.Forms.Form
+$form.Text = "Instalador de Aplicaciones"
+$form.Size = New-Object System.Drawing.Size(500,300)
+$form.StartPosition = "CenterScreen"
+# Crear etiqueta
+$label = New-Object System.Windows.Forms.Label
+$label.Location = New-Object System.Drawing.Point(10,20)
+$label.Size = New-Object System.Drawing.Size(480,30)
+$label.Text = "Seleccione una aplicaciÃ³n para instalar:"
+$form.Controls.Add($label)
+# Crear menÃº desplegable (ComboBox) con opciones del menÃº
+$comboBox = New-Object System.Windows.Forms.ComboBox
+$comboBox.Location = New-Object System.Drawing.Point(40,60)
+$comboBox.Size = New-Object System.Drawing.Size(400,150)
+$comboBox.Font = New-Object System.drawing.Font("Arial", 15) 
+# Agregar opciones del menÃº al ComboBox
+foreach ($app in $appsMenu.Keys) {
+    $comboBox.Items.Add($app)
+}
+$form.Controls.Add($comboBox)
+# Crear botÃ³n de instalaciÃ³n
+$buttonInstall = New-Object System.Windows.Forms.Button
+$buttonInstall.Location = New-Object System.Drawing.Point(60,150)
+$buttonInstall.Size = New-Object System.Drawing.Size(150,60)
+$buttonInstall.Text = "Instalar AplicaciÃ³n"
+$buttonInstall.Add_Click({
+    Install-Application $comboBox.SelectedItem
+})
+$form.Controls.Add($buttonInstall)
+# Crear botÃ³n de salida
+$buttonExit = New-Object System.Windows.Forms.Button
+$buttonExit.Location = New-Object System.Drawing.Point(170,150)
+$buttonExit.Size = New-Object System.Drawing.Size(150,60)
+$buttonExit.Text = "Salir"
+$buttonExit.Add_Click({
+    $form.Close()
+})
+$form.Controls.Add($buttonExit)
+# FunciÃ³n para instalar la aplicaciÃ³n seleccionada
+function Install-Application($selectedApp) {
+    if ($selectedApp) {
+        # Obtener la ruta de la aplicaciÃ³n desde el menÃº
+        $appPath = $appsMenu[$selectedApp]
+        # Verificar si la ruta existe
+        if (Test-Path -Path $appPath) {
+            Write-Host "La ruta de la aplicaciÃ³n existe. Ejecutando la aplicaciÃ³n: $appPath"
+            # Ejecuta la aplicaciÃ³n utilizando Start-Process
+            Start-Process -FilePath $appPath -NoNewWindow -Wait
+            Write-Host "AplicaciÃ³n ejecutada."
+        } else {
+            Write-Host "La ruta de la aplicaciÃ³n no existe."
+            # Realiza acciones adicionales si la ruta no existe
+        }
+    } else {
+        Write-Host "Seleccione una aplicaciÃ³n antes de intentar instalar."
+    }
+}
+# Mostrar formulario
+$form.ShowDialog()
